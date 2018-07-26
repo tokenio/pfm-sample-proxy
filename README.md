@@ -1,4 +1,4 @@
-## Sample: Merchant Checkout With Merchant Proxy
+## Sample: Information Access With Merchant Proxy
 
 This sample code shows how to realize the
 [Token Request Flow](https://developer.token.io/token-request) with

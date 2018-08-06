@@ -4,6 +4,7 @@ import static io.token.proto.common.account.AccountProtos.Account;
 import static io.token.proto.common.transaction.TransactionProtos.Balance;
 import static io.token.proto.common.transaction.TransactionProtos.Transaction;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonMap;
 
 import com.google.gson.JsonObject;
 import com.typesafe.config.Config;
@@ -16,12 +17,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
 public class TokenService {
+    private static final String AUTHORIZATION = "Authorization";
     private static String BASE_URL;
 
     private final Config config;
@@ -81,23 +84,20 @@ public class TokenService {
                 .getAsString();
     }
 
-    public void useAccessToken(String accessTokenId) {
-        Map<String, String> params = new HashMap<>();
-        params.put("tokenId", accessTokenId);
-
-        HttpClient.sendPut(toURL("/use-access-token"), params);
-    }
-
-    public Account getAccount(String accountId) {
-        String json = HttpClient.sendGet(toURL("/accounts/", accountId))
+    public Account getAccount(String tokenId, String accountId) {
+        String json = HttpClient.sendGet(
+                toURL("/accounts/", accountId),
+                singletonMap(AUTHORIZATION, tokenId))
                 .getAsJsonObject("account")
                 .toString();
         return ProtoJson.fromJson(json, Account.newBuilder());
     }
 
-    public List<Account> getAccounts() {
+    public List<Account> getAccounts(String tokenId) {
         List<Account> accounts = new ArrayList<>();
-        JsonObject response = HttpClient.sendGet(toURL("/accounts"));
+        JsonObject response = HttpClient.sendGet(
+                toURL("/accounts"),
+                singletonMap(AUTHORIZATION, tokenId));
         if (response.has("accounts")) {
             response.getAsJsonArray("accounts")
                     .forEach(account -> accounts.add(ProtoJson.fromJson(
@@ -108,8 +108,10 @@ public class TokenService {
         return accounts;
     }
 
-    public Balance getBalance(String accountId) {
-        String json = HttpClient.sendGet(toURL("/accounts/", accountId, "/balance"))
+    public Balance getBalance(String tokenId, String accountId) {
+        String json = HttpClient.sendGet(
+                toURL("/accounts/", accountId, "/balance"),
+                singletonMap(AUTHORIZATION, tokenId))
                 .getAsJsonObject("balance")
                 .toString();
         return ProtoJson.fromJson(json, Balance.newBuilder());
@@ -117,26 +119,29 @@ public class TokenService {
     }
 
     public Transaction getTransaction(
+            String tokenId,
             String accountId,
             String transactionId) {
-        String json = HttpClient.sendGet(toURL(
-                "/accounts/", accountId, "/transactions/", transactionId))
+        String json = HttpClient.sendGet(
+                toURL("/accounts/", accountId, "/transactions/", transactionId),
+                singletonMap(AUTHORIZATION, tokenId))
                 .getAsJsonObject("transaction")
                 .toString();
         return ProtoJson.fromJson(json, Transaction.newBuilder());
     }
 
     public List<Transaction> getTransactions(
+            String tokenId,
             String accountId,
             int limit,
             @Nullable String offset) {
         String query = "limit=" + limit + (offset == null ? "" : "&offset" + offset);
         List<Transaction> transactions = new ArrayList<>();
-        JsonObject response = HttpClient.sendGet(toURL(
-                "/accounts/",
-                accountId,
-                "/transactions?",
-                query));
+
+        JsonObject response = HttpClient.sendGet(
+                toURL("/accounts/", accountId, "/transactions?", query),
+                singletonMap(AUTHORIZATION, tokenId));
+
         if (response.has("transactions")) {
             response.getAsJsonArray("transactions")
                     .forEach(transaction -> transactions.add(ProtoJson.fromJson(

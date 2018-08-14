@@ -9,7 +9,6 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Stream;
 
 import spark.Spark;
 

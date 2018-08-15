@@ -52,18 +52,16 @@ public class Application {
                     + req.raw().getQueryString();
             String tokenId = tokenService.parseTokenRequestCallback(callbackUri);
 
-            //get the token and check its validity
-            tokenService.useAccessToken(tokenId);
-            List<Account> accounts = tokenService.getAccounts();
-
+            List<Account> accounts = tokenService.getAccounts(tokenId);
             if (accounts.size() == 0) {
                 res.status(404);
                 return "No Accounts Found!";
             }
 
             Account account = accounts.get(0);
-            Balance balance = tokenService.getBalance(account.getId());
+            Balance balance = tokenService.getBalance(tokenId, account.getId());
             List<Transaction> transactions = tokenService.getTransactions(
+                    tokenId,
                     account.getId(),
                     10,
                     null);

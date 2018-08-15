@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -26,9 +27,21 @@ public class HttpClient {
      * @return the response as a json element
      */
     public static JsonObject sendGet(URL url) {
+        return sendGet(url, Collections.emptyMap());
+    }
+
+    /**
+     * Sends HTTP Get Request
+     *
+     * @param url the url
+     * @param headers the headers
+     * @return the response as a json element
+     */
+    public static JsonObject sendGet(URL url, Map<String, String> headers) {
         try {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
+            headers.forEach(con::setRequestProperty);
 
             int responseCode = con.getResponseCode();
             logger.info("Response Code : " + responseCode);
@@ -53,10 +66,12 @@ public class HttpClient {
      * Sends HTTP Post Request
      *
      * @param url the url
-     * @param jsonParams the parameters in Json format
+     * @param params the parameters in Json format
      * @return the response as a json element
      */
-    public static JsonObject sendPost(URL url, Map<String, String> params) {
+    public static JsonObject sendPost(
+            URL url,
+            Map<String, String> params) {
         return unsafeRequest(Method.POST, url, gson.toJson(params));
     }
 
@@ -64,10 +79,12 @@ public class HttpClient {
      * Sends HTTP Put Request
      *
      * @param url the url
-     * @param jsonParams the parameters in Json format
+     * @param params the parameters in Json format
      * @return the response as a json element
      */
-    public static JsonObject sendPut(URL url, Map<String, String> params) {
+    public static JsonObject sendPut(
+            URL url,
+            Map<String, String> params) {
         return unsafeRequest(Method.PUT, url, gson.toJson(params));
     }
 
@@ -75,7 +92,10 @@ public class HttpClient {
         POST, PUT
     }
 
-    private static JsonObject unsafeRequest(Method method, URL url, String jsonParams) {
+    private static JsonObject unsafeRequest(
+            Method method,
+            URL url,
+            String jsonParams) {
         try {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
